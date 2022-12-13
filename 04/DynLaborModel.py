@@ -29,7 +29,7 @@ class DynLaborModelClass(EconModelClass):
         par.gamma = 2.5 # curvature on labor hours 
 
         # income
-        par.alpha = 0.1 # humancapital accumulation 
+        par.alpha = 0.1 # human capital accumulation 
         par.w = 1.0 # wage base level
         par.tau = 0.1 # labor income tax
 

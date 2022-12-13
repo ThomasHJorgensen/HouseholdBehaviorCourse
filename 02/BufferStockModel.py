@@ -189,7 +189,7 @@ class BufferStockModelClass(EconModelClass):
                     # iv. store savings and income (next-period state)
                     if t<par.simT-1:
                         sim.a[i,t+1] = sim.m[i,t] - sim.c[i,t]
-                        sim.P[i,t+1] = par.G*sim.P[i,t]*sim.psi[i,t]
+                        sim.P[i,t+1] = par.G*sim.P[i,t]*sim.psi[i,t+1]
 
         # c. store non-normalized variables in levels
         sim.A = sim.a*sim.P
