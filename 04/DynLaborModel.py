@@ -102,9 +102,9 @@ class DynLaborModelClass(EconModelClass):
         for t in reversed(range(par.T)):
 
             # i. loop over state variables: human capital and wealth in beginning of period
-            for ik,capital in enumerate(par.k_grid):
-                for ia,assets in enumerate(par.a_grid):
-                    idx = (t,ia,ik)
+            for i_a,assets in enumerate(par.a_grid):
+                for i_k,capital in enumerate(par.k_grid):
+                    idx = (t,i_a,i_k)
 
                     # ii. find optimal consumption and hours at this level of wealth in this period t.
 
@@ -117,7 +117,7 @@ class DynLaborModelClass(EconModelClass):
                         # call optimizer
                         hours_min = - assets / self.wage_func(capital,t) + 1.0e-5 # minimum amout of hours that ensures positive consumption
                         hours_min = np.maximum(hours_min,2.0)
-                        init_h = np.array([hours_min]) if ia==0 else np.array([sol.h[t,ia-1,ik]]) # initial guess on optimal hours
+                        init_h = np.array([hours_min]) if i_a==0 else np.array([sol.h[t,i_a-1,i_k]]) # initial guess on optimal hours
 
                         res = minimize(obj,init_h,bounds=((0.0,np.inf),),constraints=nlc,method='trust-constr')
 
@@ -142,7 +142,7 @@ class DynLaborModelClass(EconModelClass):
                         bounds = ((lb_c,ub_c),(lb_h,ub_h))
             
                         # call optimizer
-                        init = np.array([lb_c,1.0]) if (ia==0 & ik==0) else res.x  # initial guess on optimal consumption and hours
+                        init = np.array([lb_c,1.0]) if (i_a==0 & i_k==0) else res.x  # initial guess on optimal consumption and hours
                         res = minimize(obj,init,bounds=bounds,method='L-BFGS-B') 
                     
                         # store results
@@ -192,10 +192,10 @@ class DynLaborModelClass(EconModelClass):
         return util + par.rho*V_next_interp + penalty
 
 
-    def util(self,c,h):
+    def util(self,c,hours):
         par = self.par
 
-        return (c)**(1.0+par.eta) / (1.0+par.eta) - par.beta*(h)**(1.0+par.gamma) / (1.0+par.gamma) 
+        return (c)**(1.0+par.eta) / (1.0+par.eta) - par.beta*(hours)**(1.0+par.gamma) / (1.0+par.gamma) 
 
     def wage_func(self,capital,t):
         # after tax wage rate
