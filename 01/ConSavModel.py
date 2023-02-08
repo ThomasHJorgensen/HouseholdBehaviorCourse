@@ -32,8 +32,8 @@ class ConSavModelClass(EconModelClass):
         par.r = 0.02 # interest rate
 
         # grid
-        par.a_max = 100.0 # maximum point in wealth grid
-        par.Na = 50 # number of grid points in wealth grid      
+        par.a_max = 30.0 # maximum point in wealth grid
+        par.Na = 200 # number of grid points in wealth grid      
 
         # simulation
         par.simT = par.T # number of periods
