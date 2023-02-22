@@ -174,27 +174,33 @@ class BufferStockModelClass(EconModelClass):
         # b. loop over individuals and time
         for i in range(par.simN):
 
-            # i. initialize assets and permanent income
-            sim.a[i,0] = sim.a_init[i]
-            sim.P[i,0] = sim.P_init[i]
+            # i. initialize permanent income and normalized assets 
+            t = 0
+            sim.P[i,t] = sim.P_init[i]
+            sim.Y[i,t] = sim.P[i,t]*sim.xi[i,t]
+
+            sim.a[i,t] = sim.a_init[i]
+            sim.A[i,t] = sim.a[i,t]*sim.P[i,t]
+            
+            # ii. resources (normalized)
+            sim.M[i,t] = (1.0+par.r)*sim.A[i,t] + sim.Y[i,t]
+            sim.m[i,t] = sim.M[i,t]/sim.P[i,t]
 
             for t in range(par.simT):
                 if t<par.T: # check that simulation does not go further than solution                 
 
                     # iii. interpolate optimal consumption (normalized)
-                    fac = par.G*sim.psi[i,t]
-                    sim.m[i,t] = (1.0+par.r)*sim.a[i,t]/fac + sim.xi[i,t]
                     sim.c[i,t] = interp_1d(par.m_grid,sol.c[t],sim.m[i,t])
 
-                    # iv. store savings and income (next-period state)
+                    # iv. Update next-period states
                     if t<par.simT-1:
-                        sim.a[i,t+1] = sim.m[i,t] - sim.c[i,t]
                         sim.P[i,t+1] = par.G*sim.P[i,t]*sim.psi[i,t+1]
+                        sim.Y[i,t+1] = sim.P[i,t+1]*sim.xi[i,t+1]
 
-        # c. store non-normalized variables in levels
-        sim.A = sim.a*sim.P
-        sim.M = sim.m*sim.P
-        sim.C = sim.C*sim.P
-        sim.Y = sim.P*sim.psi
+                        sim.a[i,t+1] = sim.m[i,t] - sim.c[i,t]
+                        sim.A[i,t+1] = sim.a[i,t+1]*sim.P[i,t+1]
+
+                        sim.M[i,t+1] = (1.0+par.r)*sim.A[i,t+1] + sim.Y[i,t+1]
+                        sim.m[i,t+1] = sim.M[i,t+1]/sim.P[i,t+1]
 
 
