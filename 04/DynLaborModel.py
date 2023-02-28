@@ -143,7 +143,7 @@ class DynLaborModelClass(EconModelClass):
             
                         # call optimizer
                         init = np.array([lb_c,1.0]) if (i_a==0 & i_k==0) else res.x  # initial guess on optimal consumption and hours
-                        res = minimize(obj,init,bounds=bounds,method='L-BFGS-B') 
+                        res = minimize(obj,init,bounds=bounds,method='L-BFGS-B',tol=1.0e-10) 
                     
                         # store results
                         sol.c[idx] = res.x[0]
