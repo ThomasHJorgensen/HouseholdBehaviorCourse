@@ -121,7 +121,7 @@ class DynHouseholdLaborModelClass(EconModelClass):
                     if i_k1>0: 
                         init_h[0] = sol.h1[t,i_k1-1,i_k2]
                     if i_k2>0: 
-                        init_h[1] = sol.h1[t,i_k1,i_k2-1]
+                        init_h[1] = sol.h2[t,i_k1,i_k2-1]
 
                     res = minimize(obj,init_h,bounds=bounds) 
 
@@ -186,7 +186,7 @@ class DynHouseholdLaborModelClass(EconModelClass):
 
         cons = self.consumption(hours1,hours2,capital1,capital2)
 
-        util_cons = 2*(cons)**(1.0+par.eta) / (1.0+par.eta)
+        util_cons = 2*(cons/2)**(1.0+par.eta) / (1.0+par.eta)
         util_hours1 = par.rho_1*(hours1)**(1.0+par.gamma) / (1.0+par.gamma)
         util_hours2 = par.rho_2*(hours2)**(1.0+par.gamma) / (1.0+par.gamma)
 
