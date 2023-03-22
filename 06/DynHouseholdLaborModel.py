@@ -40,8 +40,8 @@ class DynHouseholdLaborModelClass(EconModelClass):
         par.delta = 0.1 # depreciation in human capital
 
         # taxes
-        par.tax_scale = 2.278029 # from Borella et al. (2023)
-        par.tax_pow = 0.0861765 # from Borella et al. (2023)
+        par.tax_scale = 2.278029 # from Borella et al. (2023), singles: 1.765038
+        par.tax_pow = 0.0861765 # from Borella et al. (2023), singles: 0.0646416
 
         # grids        
         par.k_max = 20.0 # maximum point in wealth grid
