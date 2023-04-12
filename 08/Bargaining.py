@@ -556,7 +556,7 @@ def intraperiod_allocation(C_tot,iP,sol,par):
     j1 = linear_interp.binary_search(0,par.num_Ctot,par.grid_Ctot,C_tot)
     Cw_priv = linear_interp_1d._interp_1d(par.grid_Ctot,sol.pre_Ctot_Cw_priv[iP],C_tot,j1)
     Cm_priv = linear_interp_1d._interp_1d(par.grid_Ctot,sol.pre_Ctot_Cm_priv[iP],C_tot,j1)
-    C_pub = C_tot - Cw_priv - Cm_priv #linear_interp_1d._interp_1d(par.grid_Ctot,sol.pre_Ctot_C_pub[iP],C_tot,j1) 
+    C_pub = C_tot - Cw_priv - Cm_priv 
 
     return Cw_priv, Cm_priv, C_pub
 
@@ -692,91 +692,6 @@ def check_participation_constraints(power_idx,power,Sw,Sm,idx_single,idx_couple,
 
                 power_idx[idx] = iP
                 power[idx] = par.grid_power[iP]
-
-def check_participation_constraints_old(power,Sw,Sm,idx_single,idx_couple,list_couple,list_raw,list_single, par):
-    
-    # check the participation constraints. Array
-    min_Sw = np.min(Sw)
-    min_Sm = np.min(Sm)
-    max_Sw = np.max(Sw)
-    max_Sm = np.max(Sm)
-
-    if (min_Sw >= 0.0) & (min_Sm >= 0.0): # all values are consistent with marriage
-        for iP in range(par.num_power):
-
-            # overwrite output for couple
-            idx = idx_couple(iP)
-            for i,key in enumerate(list_couple):
-                list_couple[i][idx] = list_raw[i][iP]
-
-            power[idx] = iP
-
-    elif (max_Sw < 0.0) | (max_Sm < 0.0): # no value is consistent with marriage
-        for iP in range(par.num_power):
-
-            # overwrite output for couple
-            idx = idx_couple(iP)
-            for i,key in enumerate(list_couple):
-                list_couple[i][idx] = list_single[i][idx_single]
-
-            power[idx] = -1
-
-    else: 
-    
-        # find lowest (highest) value with positive surplus for women (men)
-        Low_w = 0 # in case there is no crossing, this will be the correct value
-        Low_m = par.num_power-1 # in case there is no crossing, this will be the correct value
-        for iP in range(par.num_power-1):
-            if (Sw[iP]<0) & (Sw[iP+1]>=0):
-                Low_w = iP+1
-                
-            if (Sm[iP]>=0) & (Sm[iP+1]<0):
-                Low_m = iP
-
-        # update the outcomes
-        for iP in range(par.num_power):
-
-            # index to store solution for couple 
-            idx = idx_couple(iP)
-    
-            # woman wants to leave
-            if iP<Low_w: 
-                if Sm[Low_w] > 0: # man happy to shift some bargaining power
-
-                    for i,key in enumerate(list_couple):
-                        list_couple[i][idx] = list_raw[i][Low_w]
-
-                    power[idx] = Low_w
-                    
-                else: # divorce
-
-                    for i,key in enumerate(list_couple):
-                        list_couple[i][idx] = list_single[i][idx_single]
-
-                    power[idx] = -1
-                
-            # man wants to leave
-            elif iP>Low_m: 
-                if Sw[Low_m] > 0: # woman happy to shift some bargaining power
-                    
-                    for i,key in enumerate(list_couple):
-                        list_couple[i][idx] = list_raw[i][Low_m]
-
-                    power[idx] = Low_m
-                    
-                else: # divorce
-
-                    for i,key in enumerate(list_couple):
-                        list_couple[i][idx] = list_single[i][idx_single]
-
-                    power[idx] = -1
-
-            else: # no-one wants to leave
-
-                for i,key in enumerate(list_couple):
-                    list_couple[i][idx] = list_raw[i][iP]
-
-                power[idx] = iP
 
 def update_bargaining_index(Sw,Sm,iP, par):
     
