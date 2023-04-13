@@ -217,7 +217,7 @@ class DynHouseholdLaborModelClass(EconModelClass):
 
                 # store income
                 sim.income1[i,t] = self.wage_func(sim.k1[i,t],1)*sim.h1[i,t]
-                sim.income2[i,t] = self.wage_func(sim.k2[i,t],1)*sim.h2[i,t]
+                sim.income2[i,t] = self.wage_func(sim.k2[i,t],2)*sim.h2[i,t]
 
                 # iii. store next-period states
                 if t<par.simT-1:
