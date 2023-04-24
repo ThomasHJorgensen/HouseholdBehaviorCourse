@@ -178,8 +178,8 @@ class HouseholdModelClass(EconModelClass):
 
         # initial distribution
         sim.init_A = par.grid_A[0] + np.zeros(par.simN)
-        sim.init_Aw = np.zeros(par.simN)
-        sim.init_Am = np.zeros(par.simN)
+        sim.init_Aw = par.div_A_share * sim.init_A #np.zeros(par.simN)
+        sim.init_Am = (1.0 - par.div_A_share) * sim.init_A #np.zeros(par.simN)
         sim.init_couple = np.ones(par.simN,dtype=np.bool)
         sim.init_power_idx = par.num_power//2 * np.ones(par.simN,dtype=np.int_)
         sim.init_love = np.zeros(par.simN)
@@ -466,7 +466,7 @@ class HouseholdModelClass(EconModelClass):
                             Vw_couple[iP] = linear_interp.interp_2d(par.grid_love,par.grid_A,sol.Vw_remain_couple[idx],love,A_lag)
                             Vm_couple[iP] = linear_interp.interp_2d(par.grid_love,par.grid_A,sol.Vm_remain_couple[idx],love,A_lag)
 
-                        # check participation constraint TODO: should it be the value of REMAINING MARRIED? now it is the value of entering the period as married...
+                        # check participation constraint 
                         Sw = Vw_couple - Vw_single
                         Sm = Vm_couple - Vm_single
                         power_idx = update_bargaining_index(Sw,Sm,power_idx_lag, par)
