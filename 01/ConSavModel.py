@@ -97,12 +97,17 @@ class ConSavModelClass(EconModelClass):
                 ub = assets + par.yt[t] 
 
                 # call optimizer
-                c_init = np.array(0.5*ub) # initial guess on optimal consumption
-                res = minimize(obj,c_init,bounds=((lb,ub),),method='SLSQP')
-                
-                # store results
-                sol.c[t,ia] = res.x[0]
-                sol.V[t,ia] = -res.fun
+                if lb>=ub: # if the bounds are not feasible, set consumption to all resources 
+                    sol.c[t,ia] = ub
+                    sol.V[t,ia] = -obj(sol.c[t,ia])
+
+                else:
+                    c_init = np.array(lb+0.5*ub) # initial guess on optimal consumption
+                    res = minimize(obj,c_init,bounds=((lb,ub),),method='SLSQP')
+                    
+                    # store results
+                    sol.c[t,ia] = res.x[0]
+                    sol.V[t,ia] = -res.fun
         
 
     def value_of_choice(self,cons,assets,t):
