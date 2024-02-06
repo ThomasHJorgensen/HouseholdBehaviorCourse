@@ -84,7 +84,7 @@ class ConSavModelClass(EconModelClass):
         # c. loop backwards [note, the last element, N, in range(N) is not included in the loop due to index starting at 0]
         for t in reversed(range(par.T-1)):
 
-            # i. loop over state varible: wealth in beginning of period
+            # i. loop over state variable: wealth in beginning of period
             for ia,assets in enumerate(par.a_grid):
 
                 # ii. find optimal consumption at this level of wealth in this period t.
