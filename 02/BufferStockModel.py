@@ -104,7 +104,7 @@ class BufferStockModelClass(EconModelClass):
         # c. loop backwards [note, the last element, N, in range(N) is not included in the loop due to index starting at 0]
         for t in reversed(range(par.T-1)):
 
-            # i. loop over state varible: resources in beginning of period
+            # i. loop over state variable: resources in beginning of period
             for im,resources in enumerate(par.m_grid):
 
                 # ii. find optimal consumption at this level of resources in this period t.
