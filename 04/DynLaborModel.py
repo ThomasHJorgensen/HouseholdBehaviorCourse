@@ -4,7 +4,7 @@ import warnings
 warnings.filterwarnings("ignore", message="delta_grad == 0.0. Check if the approximated function is linear.") # turn of annoying warning
 
 from EconModel import EconModelClass, jit
-HALLO TJEK
+
 from consav.grids import nonlinspace
 from consav.linear_interp import interp_2d
 
