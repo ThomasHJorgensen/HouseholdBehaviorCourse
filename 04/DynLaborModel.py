@@ -115,7 +115,7 @@ class DynLaborModelClass(EconModelClass):
                         nlc = NonlinearConstraint(constr, lb=0.0, ub=np.inf,keep_feasible=True)
 
                         # call optimizer
-                        hours_min = - assets / self.wage_func(capital,t) + 1.0e-5 # minimum amout of hours that ensures positive consumption
+                        hours_min = - assets / self.wage_func(capital,t) + 1.0e-5 # minimum amount of hours that ensures positive consumption
                         hours_min = np.maximum(hours_min,2.0)
                         init_h = np.array([hours_min]) if i_a==0 else np.array([sol.h[t,i_a-1,i_k]]) # initial guess on optimal hours
 
