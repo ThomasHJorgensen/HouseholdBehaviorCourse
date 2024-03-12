@@ -125,17 +125,13 @@ class DynLaborFertModelClass(EconModelClass):
                         # ii. find optimal consumption and hours at this level of wealth in this period t.
 
                         if t==par.T-1: # last period
+                            
                             obj = lambda x: self.obj_last(x[0],assets,capital,kids)
 
-                            constr = lambda x: self.cons_last(x[0],assets,capital)
-                            nlc = NonlinearConstraint(constr, lb=0.0, ub=np.inf,keep_feasible=True)
-
                             # call optimizer
-                            hours_min = - assets / self.wage_func(capital,t) + 1.0e-5 # minimum amout of hours that ensures positive consumption
-                            hours_min = np.maximum(hours_min,2.0)
-                            init_h = np.array([hours_min]) if i_a==0 else np.array([sol.h[t,i_n,i_a-1,i_k]]) # initial guess on optimal hours
-
-                            res = minimize(obj,init_h,bounds=((0.0,np.inf),),constraints=nlc,method='trust-constr')
+                            hours_min = np.fmax( - assets / self.wage_func(capital,t) + 1.0e-5 , 0.0) # minimum amount of hours that ensures positive consumption
+                            init_h = np.maximum(hours_min,2.0) if i_a==0 else np.array([sol.h[t,i_n,i_a-1,i_k]])
+                            res = minimize(obj,init_h,bounds=((hours_min,np.inf),),method='L-BFGS-B')
 
                             # store results
                             sol.c[idx] = self.cons_last(res.x[0],assets,capital)
@@ -158,8 +154,9 @@ class DynLaborFertModelClass(EconModelClass):
                             bounds = ((lb_c,ub_c),(lb_h,ub_h))
                 
                             # call optimizer
-                            init = np.array([lb_c,1.0]) if (i_n == 0 & i_a==0 & i_k==0) else res.x  # initial guess on optimal consumption and hours
-                            res = minimize(obj,init,bounds=bounds,method='L-BFGS-B') 
+                            idx_last = (t+1,i_n,i_a,i_k)
+                            init = np.array([sol.c[idx_last],sol.h[idx_last]])
+                            res = minimize(obj,init,bounds=bounds,method='L-BFGS-B',tol=1.0e-8) 
                         
                             # store results
                             sol.c[idx] = res.x[0]
