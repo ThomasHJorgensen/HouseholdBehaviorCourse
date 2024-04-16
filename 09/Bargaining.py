@@ -139,15 +139,6 @@ class HouseholdModelClass(EconModelClass):
         sol.Vw_plus_vec = np.zeros(par.num_shock_love) 
         sol.Vm_plus_vec = np.zeros(par.num_shock_love) 
 
-        # EGM
-        sol.marg_V_couple = np.zeros(shape_couple)
-        sol.marg_V_remain_couple = np.zeros(shape_couple)
-
-        shape_egm = (par.num_power,par.num_love,par.num_A_pd)
-        sol.EmargU_pd = np.zeros(shape_egm)
-        sol.C_tot_pd = np.zeros(shape_egm)
-        sol.M_pd = np.zeros(shape_egm)
-
         # pre-compute optimal consumption allocation
         shape_pre = (par.num_power,par.num_Ctot)
         sol.pre_Ctot_Cw_priv = np.nan + np.ones(shape_pre)
@@ -215,13 +206,6 @@ class HouseholdModelClass(EconModelClass):
         # pre-computation
         par.grid_Ctot = nonlinspace(1.0e-6,par.max_Ctot,par.num_Ctot,1.1)
 
-        # EGM
-        par.grid_util = np.nan + np.ones((par.num_power,par.num_Ctot))
-        par.grid_marg_u = np.nan + np.ones(par.grid_util.shape)
-        par.grid_inv_marg_u = np.flip(par.grid_Ctot)
-        par.grid_marg_u_for_inv = np.nan + np.ones(par.grid_util.shape)
-
-        par.grid_A_pd = nonlinspace(0.0,par.max_A,par.num_A_pd,1.1)
 
     def solve(self):
         sol = self.sol
@@ -322,7 +306,7 @@ class HouseholdModelClass(EconModelClass):
                         C_tot_last = remain_Cw_priv[iP-1] + remain_Cm_priv[iP-1] + remain_C_pub[iP-1]
                         starting_val = np.array([C_tot_last])
                     
-                    # solve problem if remining married
+                    # solve problem if remaining married
                     remain_Cw_priv[iP], remain_Cm_priv[iP], remain_C_pub[iP], remain_Vw[iP], remain_Vm[iP] = self.solve_remain_couple(t,M_resources,iL,iP,power,Vw_next,Vm_next,starting_val=starting_val)
 
                 # check the participation constraints
@@ -355,11 +339,11 @@ class HouseholdModelClass(EconModelClass):
 
         else:
             # objective function
-            obj = lambda x: - self.value_of_choice_couple(x[0],t,M_resources,iL,iP,power,Vw_next,Vm_next)[0]
-            x0 = np.array([M_resources * 0.8]) if starting_val is None else starting_val
+            obj = lambda C_tot: - self.value_of_choice_couple(C_tot[0],t,M_resources,iL,iP,power,Vw_next,Vm_next)[0]
+            C_tot_init = np.array([M_resources * 0.8]) if starting_val is None else starting_val
 
             # optimize
-            res = optimize.minimize(obj,x0,bounds=((1.0e-6, M_resources - 1.0e-6),) ,method='SLSQP') 
+            res = optimize.minimize(obj,C_tot_init,bounds=((1.0e-6, M_resources - 1.0e-6),) ,method='SLSQP') 
             C_tot = res.x[0]
 
         # implied consumption allocation (re-calculation)
@@ -381,8 +365,7 @@ class HouseholdModelClass(EconModelClass):
 
         # add continuation value
         if t < (par.T-1):
-            # savings_vec = np.ones(par.num_shock_love)
-            sol.savings_vec[:] = M_resources - C_tot #np.repeat(M_resources - C_tot,par.num_shock_love) np.tile(M_resources - C_tot,(par.num_shock_love,)) 
+            sol.savings_vec[:] = M_resources - C_tot
             love_next_vec = love + par.grid_shock_love
 
             linear_interp.interp_2d_vec(par.grid_love,par.grid_A , Vw_next, love_next_vec,sol.savings_vec,sol.Vw_plus_vec)
