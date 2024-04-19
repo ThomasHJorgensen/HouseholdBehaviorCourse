@@ -111,15 +111,10 @@ class DynLaborModelClass(EconModelClass):
                     if t==par.T-1: # last period
                         obj = lambda x: self.obj_last(x[0],assets,capital)
 
-                        constr = lambda x: self.cons_last(x[0],assets,capital)
-                        nlc = NonlinearConstraint(constr, lb=0.0, ub=np.inf,keep_feasible=True)
-
                         # call optimizer
-                        hours_min = - assets / self.wage_func(capital,t) + 1.0e-5 # minimum amount of hours that ensures positive consumption
-                        hours_min = np.maximum(hours_min,2.0)
-                        init_h = np.array([hours_min]) if i_a==0 else np.array([sol.h[t,i_a-1,i_k]]) # initial guess on optimal hours
-
-                        res = minimize(obj,init_h,bounds=((0.0,np.inf),),constraints=nlc,method='trust-constr')
+                        hours_min = np.fmax( - assets / self.wage_func(capital,t) + 1.0e-5 , 0.0) # minimum amount of hours that ensures positive consumption
+                        init_h = np.maximum(hours_min,2.0) if i_a==0 else np.array([sol.h[t,i_a-1,i_k]])
+                        res = minimize(obj,init_h,bounds=((hours_min,np.inf),),method='L-BFGS-B')
 
                         # store results
                         sol.c[idx] = self.cons_last(res.x[0],assets,capital)
