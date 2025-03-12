@@ -141,7 +141,7 @@ class DynLaborFertModelClass(EconModelClass):
                         else:
                             
                             # objective function: negative since we minimize
-                            obj = lambda x: - self.value_of_choice(x[0],x[1],assets,capital,kids,t)  
+                            obj = lambda x: - self.value_of_choice(x[1],x[0],assets,capital,kids,t)  
 
                             # bounds on consumption 
                             lb_c = 0.000001 # avoid dividing with zero
@@ -151,16 +151,16 @@ class DynLaborFertModelClass(EconModelClass):
                             lb_h = 0.0
                             ub_h = np.inf 
 
-                            bounds = ((lb_c,ub_c),(lb_h,ub_h))
+                            bounds = ((lb_h,ub_h),(lb_c,ub_c))
                 
                             # call optimizer
                             idx_last = (t+1,i_n,i_a,i_k)
-                            init = np.array([sol.c[idx_last],sol.h[idx_last]])
+                            init = np.array([sol.h[idx_last],sol.c[idx_last]])
                             res = minimize(obj,init,bounds=bounds,method='L-BFGS-B',tol=1.0e-8) 
                         
                             # store results
-                            sol.c[idx] = res.x[0]
-                            sol.h[idx] = res.x[1]
+                            sol.h[idx] = res.x[0]
+                            sol.c[idx] = res.x[1]
                             sol.V[idx] = -res.fun
 
     # last period
@@ -201,20 +201,20 @@ class DynLaborFertModelClass(EconModelClass):
 
         # no birth
         kids_next = kids
-        V_next = sol.V[t+1,kids_next]
-        V_next_no_birth = interp_2d(par.a_grid,par.k_grid,V_next,a_next,k_next)
+        V_next_no = sol.V[t+1,kids_next]
+        V_next_no_interp = interp_2d(par.a_grid,par.k_grid,V_next_no,a_next,k_next)
 
         # birth
         if (kids>=(par.Nn-1)):
             # cannot have more children
-            V_next_birth = V_next_no_birth
+            V_next_birth_interp = V_next_no_interp
 
         else:
             kids_next = kids + 1
             V_next = sol.V[t+1,kids_next]
-            V_next_birth = interp_2d(par.a_grid,par.k_grid,V_next,a_next,k_next)
+            V_next_birth_interp = interp_2d(par.a_grid,par.k_grid,V_next,a_next,k_next)
 
-        EV_next = par.p_birth * V_next_birth + (1-par.p_birth)*V_next_no_birth
+        EV_next = par.p_birth * V_next_birth_interp + (1-par.p_birth)*V_next_no_interp
 
         # e. return value of choice (including penalty)
         return util + par.rho*EV_next + penalty
