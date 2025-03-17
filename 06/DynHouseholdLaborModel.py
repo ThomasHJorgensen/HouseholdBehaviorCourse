@@ -97,9 +97,7 @@ class DynHouseholdLaborModelClass(EconModelClass):
         par = self.par
         sol = self.sol
         
-        # b. solve last period
-        
-        # c. loop backwards (over all periods)
+        # b. loop backwards (over all periods)
         for t in reversed(range(par.T)):
 
             # i. loop over state variables: human capital for each household member
@@ -107,9 +105,9 @@ class DynHouseholdLaborModelClass(EconModelClass):
                 for i_k2,capital2 in enumerate(par.k_grid):
                     idx = (t,i_k1,i_k2)
                     
-                    # ii. find optimal consumption and hours at this level of wealth in this period t.
+                    # ii. find optimal hours of both members at this level of human capital in period t.
                     if t==(par.T-1): # last period
-                        obj = lambda x: -self.util(x[0],x[1],capital1,capital2)
+                        obj = lambda x: - self.util(x[0],x[1],capital1,capital2)
 
                     else:
                         obj = lambda x: - self.value_of_choice(x[0],x[1],capital1,capital2,sol.V[t+1])  
