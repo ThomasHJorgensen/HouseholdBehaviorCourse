@@ -140,10 +140,10 @@ class DynHouseholdLaborModelClass(EconModelClass):
         # c. continuation value
         k1_next = (1.0-par.delta)*capital1 + hours1
         k2_next = (1.0-par.delta)*capital2 + hours2
-        V_next = interp_2d(par.k_grid,par.k_grid,V_next,k1_next,k2_next)
+        V_next_interp = interp_2d(par.k_grid,par.k_grid,V_next,k1_next,k2_next)
 
         # d. return value of choice
-        return util + par.beta*V_next
+        return util + par.beta*V_next_interp
 
 
     # relevant functions
