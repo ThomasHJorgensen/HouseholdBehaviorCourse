@@ -230,12 +230,12 @@ class HouseholdModelClass(EconModelClass):
         # setup grids
         self.setup_grids()
 
-        # precompute the optimal intra-temporal consumption allocation for couples given total consumpotion
+        # precompute the optimal intra-temporal consumption allocation for couples given total consumption
         for iP,power in enumerate(par.grid_power):
             for i,C_tot in enumerate(par.grid_Ctot):
                 sol.pre_Ctot_Cw_priv[iP,i], sol.pre_Ctot_Cm_priv[iP,i], sol.pre_Ctot_C_pub[iP,i] = solve_intraperiod_couple(C_tot,power,par)
 
-        # loop backwards
+        # loop backwards (main routines)
         for t in reversed(range(par.T)):
             self.solve_single(t)
             self.solve_couple(t)
@@ -246,7 +246,7 @@ class HouseholdModelClass(EconModelClass):
         sol.Cw_tot_single = sol.Cw_priv_single + sol.Cw_pub_single
         sol.Cm_tot_single = sol.Cm_priv_single + sol.Cm_pub_single
 
-        # value of transitioning to singlehood. Done here because absorbing . it is the same as entering period as single.
+        # value of transitioning to singlehood. Done here because absorbing. It is the same as entering period as single.
         sol.Vw_trans_single = sol.Vw_single.copy()
         sol.Vm_trans_single = sol.Vm_single.copy()
         sol.Cw_priv_trans_single = sol.Cw_priv_single.copy()
@@ -350,6 +350,7 @@ class HouseholdModelClass(EconModelClass):
     def solve_remain_couple(self,t,M_resources,iL,iP,power,Vw_next,Vm_next,starting_val = None):
         par = self.par
 
+        # a. Solve intertemporal problem (total consumtion vs. saving)
         if t==(par.T-1): # Terminal period
             C_tot = M_resources
 
@@ -362,10 +363,10 @@ class HouseholdModelClass(EconModelClass):
             res = optimize.minimize(obj,x0,bounds=((1.0e-6, M_resources - 1.0e-6),) ,method='SLSQP') 
             C_tot = res.x[0]
 
-        # implied consumption allocation (re-calculation)
+        # b. Solve intra-period allocation: implied consumption allocation (re-calculation)
         _, Cw_priv, Cm_priv, C_pub, Vw,Vm = self.value_of_choice_couple(C_tot,t,M_resources,iL,iP,power,Vw_next,Vm_next)
 
-        # return objects
+        # c. return objects
         return Cw_priv, Cm_priv, C_pub, Vw, Vm
 
     def value_of_choice_couple(self,C_tot,t,M_resources,iL,iP,power,Vw_next,Vm_next):
@@ -374,28 +375,34 @@ class HouseholdModelClass(EconModelClass):
 
         love = par.grid_love[iL]
         
-        # current utility from consumption allocation
+        # a. current utility from consumption allocation
         Cw_priv, Cm_priv, C_pub = intraperiod_allocation(C_tot,iP,sol,par)
-        Vw = usr.util(Cw_priv,C_pub,woman,par,love)
-        Vm = usr.util(Cm_priv,C_pub,man,par,love)
+        Uw = usr.util(Cw_priv,C_pub,woman,par,love)
+        Um = usr.util(Cm_priv,C_pub,man,par,love)
 
-        # add continuation value
+        # b. Expected continuation value
         if t < (par.T-1):
             # savings_vec = np.ones(par.num_shock_love)
-            sol.savings_vec[:] = M_resources - C_tot #np.repeat(M_resources - C_tot,par.num_shock_love) np.tile(M_resources - C_tot,(par.num_shock_love,)) 
-            love_next_vec = love + par.grid_shock_love
+            sol.savings_vec[:] = M_resources - C_tot # vector. re-use memory
+            love_next_vec = love + par.grid_shock_love  # vector of future love states
 
             linear_interp.interp_2d_vec(par.grid_love,par.grid_A , Vw_next, love_next_vec,sol.savings_vec,sol.Vw_plus_vec)
             linear_interp.interp_2d_vec(par.grid_love,par.grid_A , Vm_next, love_next_vec,sol.savings_vec,sol.Vm_plus_vec)
 
-            EVw_plus = sol.Vw_plus_vec @ par.grid_weight_love
+            EVw_plus = sol.Vw_plus_vec @ par.grid_weight_love   # vector multipålication.
             EVm_plus = sol.Vm_plus_vec @ par.grid_weight_love
+        
+        else: # terminal period
+            EVw_plus = 0.0
+            EVm_plus = 0.0
 
-            Vw += par.beta*EVw_plus
-            Vm += par.beta*EVm_plus
+        # c. individual and weighted values
+        Vw = Uw + par.beta*EVw_plus
+        Vm = Um + par.beta*EVm_plus
 
-        # return
         Val = power*Vw + (1.0-power)*Vm
+
+        # d. return
         return Val , Cw_priv, Cm_priv, C_pub, Vw,Vm
         
     def value_of_choice_single(self,C_tot,M,gender,V_next):
