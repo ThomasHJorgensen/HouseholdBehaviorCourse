@@ -184,7 +184,7 @@ class DynamicSpecializationModelClass(EconModelClass):
 
     def value_of_choice(self,x,capital_f,capital_m,kids,V_next=None):
 
-        # a. unpack
+        # a. unpack the four elements of x
         par = self.par
         labor_f,home_f,labor_m,home_m = x
 
