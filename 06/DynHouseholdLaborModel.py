@@ -138,8 +138,8 @@ class DynHouseholdLaborModelClass(EconModelClass):
         util = self.util(hours1,hours2,capital1,capital2)
         
         # c. continuation value
-        k1_next = (1.0-par.delta)*capital1 + hours1
-        k2_next = (1.0-par.delta)*capital2 + hours2
+        k1_next = self.hum_cap_transition(capital1,hours1)
+        k2_next = self.hum_cap_transition(capital2,hours2)
         V_next_interp = interp_2d(par.k_grid,par.k_grid,V_next,k1_next,k2_next)
 
         # d. return value of choice
@@ -189,6 +189,10 @@ class DynHouseholdLaborModelClass(EconModelClass):
         util_hours2 = par.rho_2*(hours2)**(1.0+par.gamma) / (1.0+par.gamma)
 
         return util_cons - util_hours1 - util_hours2
+    
+    def hum_cap_transition(self,capital,labor):
+        par = self.par
+        return (1.0-par.delta)*capital + labor
 
     ##############
     # Simulation #
@@ -219,8 +223,8 @@ class DynHouseholdLaborModelClass(EconModelClass):
 
                 # iii. store next-period states
                 if t<par.simT-1:
-                    sim.k1[i,t+1] = (1.0-par.delta)*sim.k1[i,t] + sim.h1[i,t]
-                    sim.k2[i,t+1] = (1.0-par.delta)*sim.k2[i,t] + sim.h2[i,t]
+                    sim.k1[i,t+1] = self.hum_cap_transition(sim.k1[i,t],sim.h1[i,t])
+                    sim.k2[i,t+1] = self.hum_cap_transition(sim.k2[i,t],sim.h2[i,t])
                     
 
 
